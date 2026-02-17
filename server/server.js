@@ -1,7 +1,12 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import connectDB from './config/db.js';
 
-dotenv.config()
+// loads environment variables first, before anything that uses process.env
+dotenv.config();
+
+// connects to MongoDB
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
