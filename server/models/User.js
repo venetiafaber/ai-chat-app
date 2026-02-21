@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from 'bcryptjs';
 
 // schema definition
 const userSchema = new mongoose.Schema({
@@ -34,6 +35,26 @@ const userSchema = new mongoose.Schema({
 },{
   timestamps: true         // automatically adds 2 fileds: createdAt & updateAt to every document
 });
+
+// mongoose middleware: hash password
+// use regular function 
+userSchema.pre("save", async function () {
+  // only hash if the password was modified
+  if(!this.isModified("password")) {
+    return;
+  }
+
+  // generate salt: random data added to password
+  const salt = await bcrypt.genSalt(10);
+
+  // hash password
+  this.password = await bcrypt.hash(this.password, salt);
+  //console.log('Password hashed successfully');
+});
+
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 // creates model from schema
 const User = mongoose.model('User', userSchema);  //MongoDB will create a collection called 'users'

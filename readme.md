@@ -86,7 +86,6 @@ npm install
 3. Configure environment variables
 ```bash
 cp .env.example .env
-# Edit .env with your credentials
 ```
 
 4. Start development server

@@ -6,11 +6,13 @@ export const registerUser = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
 
+    console.log('Password before save:', password);
+
     // guard check
     if (!username || !email || !password) {
       const error = new Error("Please provide all required fields"); // why use Error instead of console.log
       error.statusCode = 400; // bad request
-      throw error; // this will be caught by our error handler //how??
+      throw error; // this will be caught by error handler 
     }
 
     // checks if user already exists
@@ -18,15 +20,18 @@ export const registerUser = async (req, res, next) => {
     if (userExists) {
       const error = new Error("User with this email already exist");
       error.statusCode = 409; //conflict
-      throw error; // this will be caught by our error handler //how??
+      throw error; 
     }
 
     // creates user in database
     const user = await User.create({
       username,
       email,
-      password,
+      password,   // password will be automatically hashed by pre-save middleware in user model
     });
+
+    // const savedUser = await User.findById(user._id).select('+password');
+    // console.log('Password After save:', savedUser.password);
 
     // sends success response
     res.status(201).json({
@@ -70,7 +75,8 @@ export const loginUser = async (req, res, next) => {
     }
 
     // check password
-    if (user.password !== password) {
+    const isPasswordMatch = await user.matchPassword(password);
+    if (!isPasswordMatch) {
       const error = new Error("Invalid Credentials");
       error.statusCode = 401;
       throw error;
