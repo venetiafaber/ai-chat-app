@@ -1,12 +1,11 @@
 import User from "../models/User.js";
+import generateToken from "../utils/generateToken.js";
 
 // registers a new user
 // route: POST: /api/users/register
 export const registerUser = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
-
-    console.log('Password before save:', password);
 
     // guard check
     if (!username || !email || !password) {
@@ -27,11 +26,11 @@ export const registerUser = async (req, res, next) => {
     const user = await User.create({
       username,
       email,
-      password,   // password will be automatically hashed by pre-save middleware in user model
+      password,   // password will be hashed by pre-save middleware in user model
     });
 
-    // const savedUser = await User.findById(user._id).select('+password');
-    // console.log('Password After save:', savedUser.password);
+    // generates JWT token
+    const token = generateToken(user._id);
 
     // sends success response
     res.status(201).json({
@@ -43,7 +42,8 @@ export const registerUser = async (req, res, next) => {
         email: user.email,
         avatar: user.avatar,
         createTime: user.createdAt,
-      },
+        token // returns token
+      }
     });
     
   } catch (error) {
@@ -82,6 +82,9 @@ export const loginUser = async (req, res, next) => {
       throw error;
     }
 
+    // generates JWT token
+    const token = generateToken(user._id);
+
     res.status(200).json({
       success: true,
       message: "Logic successful",
@@ -90,6 +93,7 @@ export const loginUser = async (req, res, next) => {
         username: user.username,
         email: user.email,
         avatar: user.avatar,
+        token   // returns token
       },
     });
 

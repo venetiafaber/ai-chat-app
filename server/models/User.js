@@ -49,7 +49,6 @@ userSchema.pre("save", async function () {
 
   // hash password
   this.password = await bcrypt.hash(this.password, salt);
-  //console.log('Password hashed successfully');
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
