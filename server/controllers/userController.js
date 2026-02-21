@@ -40,8 +40,9 @@ export const registerUser = async (req, res, next) => {
         createTime: user.createdAt,
       },
     });
+    
   } catch (error) {
-    // passes error to error handler - how??
+    // passes error to error handler
     next(error);
   }
 };
@@ -85,6 +86,7 @@ export const loginUser = async (req, res, next) => {
         avatar: user.avatar,
       },
     });
+
   } catch (error) {
     // passes error to error handler
     next(error);
@@ -192,6 +194,7 @@ export const deleteUser = async (req, res, next) => {
       deletedAt: user.updatedAt
     }
   });
+
   } catch (error) {
     next(error);
   }
@@ -199,7 +202,7 @@ export const deleteUser = async (req, res, next) => {
 
 // gets all users
 // route: /api/users
-export const getAllUsers = async (req, res, next) => {
+export const getUsers = async (req, res, next) => {
   try {
     const users = await User.find().select('-password');
 
