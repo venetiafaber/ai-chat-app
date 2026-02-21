@@ -1,5 +1,6 @@
 import express from 'express';
 import { registerUser, loginUser, getUser, updateUser, deleteUser, getUsers } from '../controllers/userController.js';
+import { protect } from '../middleware/auth.js'
 
 // creates a router instance
 const router = express.Router();
@@ -9,10 +10,10 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 
 // private routes - authentication REQUIRED
-router.get('/:id', getUser);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
-router.get('/', getUsers);
+router.get('/:id', protect, getUser);
+router.put('/:id', protect, updateUser);
+router.delete('/:id', protect, deleteUser);
+router.get('/', protect, getUsers);
 
 export default router;
 

@@ -111,8 +111,7 @@ export const getUser = async (req, res, next) => {
     const userId = req.params.id;
 
     // finds the user
-    //const user = await User.findById({ userId }); // take string not object 
-    const user = await User.findById(userId); // take string not object 
+    const user = await User.findById(userId).select('-password'); 
 
     if(!user) {
       const error = new Error('User not found');
@@ -120,14 +119,25 @@ export const getUser = async (req, res, next) => {
       throw error;
     }
 
+    // checks if user is requesting their own profile
+    if(user._id.toString() !== req.user._id.toString()) {
+      const error = new Error('Not authorized to view this profile');
+      error.statusCode = 403;
+      throw error;
+    }
+
     // found user, sends response
     res.status(200).json({
       success: true,
       data: user
-    })
+    });
     
   } catch (error) {
-    // handle invalid objectId:
+    // handles invalid objectId:
+    if(error.name === 'CastError') {
+      error.message = 'Invalid user ID format';
+      error.statusCode = 400;
+    }
 
     next(error);
   }
@@ -141,6 +151,13 @@ export const updateUser = async (req, res, next) => {
 
     // fields that can be update
     const { username, email, avatar } = req.body;
+
+    // checks if user is updating their own profile
+    if(userId !== req.user._id.toString()) {
+      const error = new Error('Not authorized to update this profile');
+      error.statusCode = 403;
+      throw error;
+    }
 
     // finds user
     const user = await User.findById(userId);
@@ -187,23 +204,29 @@ export const deleteUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
 
-  const user = await User.findByIdAndDelete(userId);
-
-  if(!user) {
-    const error = new Error('User not found');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  res.status(200).json({    // if using 204, dont send json body
-    success: true,
-    message: 'User deleted successfully',
-    data: {
-      username: user.username,
-      email: user.email,
-      deletedAt: user.updatedAt
+    if(userId !== req.user._id.toString()) {
+      const error = new Error('Not authorized to delete this account');
+      error.statusCode = 403;
+      throw error;
     }
-  });
+
+    const user = await User.findByIdAndDelete(userId);
+
+    if(!user) {
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.status(200).json({    // if using 204, dont send json body
+      success: true,
+      message: 'User deleted successfully',
+      data: {
+        username: user.username,
+        email: user.email,
+        deletedAt: user.updatedAt
+      }
+    });
 
   } catch (error) {
     next(error);
