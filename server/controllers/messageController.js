@@ -14,12 +14,21 @@ export const getMessages = async (req, res, next) => {
     }
 
     const conversation = await Conversation.findById(conversationId);
+
     if(!conversation) {
       const error = new Error('Conversation not found');
       error.statusCode = 404;
       throw error;
     }
 
+    // authorization check: verifies if the conversation belongs to the logged-in user
+    if(req.user._id.toString() !== conversation.user.toString()) {
+      const error = new Error('Not authorized to access this message');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // gets messages
     const messages = await Message.find({
       conversation: conversationId
     })
@@ -51,15 +60,16 @@ export const createMessage = async (req, res, next) => {
       throw error;
     }
 
-    // validate role how?? explain
+    // validate role
     if(!['user', 'ai'].includes(role)) {      // Array.includes()
       const error = new Error('Role must be either "user" or "ai"');
       error.statusCode = 400;
       throw error;
     }
 
-    // check if conversation exists
+    // finds conversation
     const conversation = await Conversation.findById(conversationId);
+    
     if(!conversation) {
       const error = new Error('Conversation not found');
       error.statusCode = 404;
@@ -69,6 +79,13 @@ export const createMessage = async (req, res, next) => {
     if(!conversation.isActive) {
       const error = new Error('Cannot add message to deleted conversation');
       error.statusCode = 400;
+      throw error;
+    }
+
+    // authorization check: verifies if the conversation belongs to the logged-in user
+    if(req.user._id.toString() !== conversation.user.toString()) {
+      const error = new Error('Not authorized to access this message');
+      error.statusCode = 403;
       throw error;
     }
 
@@ -92,7 +109,7 @@ export const createMessage = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'Message created/added',
+      message: 'Message created',
       data: message
     });
     
@@ -111,7 +128,7 @@ export const deleteMessage = async (req, res, next) => {
 
     if(!message) {
       const error = new Error ('Message not found');
-      error.statusCode = 400;
+      error.statusCode = 404;
       throw error;
     }
 
@@ -120,6 +137,19 @@ export const deleteMessage = async (req, res, next) => {
 
     const conversation = await Conversation.findById(message.conversation);
 
+    if(!conversation) {
+      const error = new Error('Conversation not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // authorization check: verifies if the conversation belongs to the logged-in user
+    if(req.user._id.toString() !== conversation.user.toString()) {
+      const error = new Error('Not authorized to delete this message');
+      error.statusCode = 403;
+      throw error;
+    }
+    
     // updates the message count in the conversation
     if(conversation && conversation.messageCount > 0) {
       conversation.messageCount -= 1;

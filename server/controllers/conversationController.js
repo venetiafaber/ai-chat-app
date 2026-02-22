@@ -4,13 +4,16 @@ import Conversation from "../models/Conversation.js";
 // route: GET /api/conversations
 export const getConversations = async (req, res, next) => {
   try {
-    const { userId } = req.query;
+    // const { userId } = req.query; 
+    // gets userId from authenticated user, instead of passing userId as a query parameter
+    const userId = req.user._id;
 
-    if (!userId) {
-      const error = new Error("User Id is required");
-      error.statusCode = 400;
-      throw error;
-    }
+    // validation code for user id is not needed because user is authenticated using authentication middleware
+    // if (!userId) {
+    //   const error = new Error("User Id is required");
+    //   error.statusCode = 400;
+    //   throw error;
+    // }
 
     // find all active conversations for this user and sort by most recently updated first
     const conversations = await Conversation.find({
@@ -35,14 +38,16 @@ export const getConversations = async (req, res, next) => {
 // route: POST /api/conversations
 export const createConversation = async (req, res, next) => {
   try {
-    const { userId, title } = req.body;
+    // const { userId, title } = req.body;
+    const userId = req.user._id;    // from authenticated user
+    const { title } = req.body;
 
-    // validation
-    if (!userId) {
-      const error = new Error("User ID is required");
-      error.statusCode = 400;
-      throw error;
-    }
+    // validation - not needed since user is authenticated from middleware 
+    // if (!userId) {
+    //   const error = new Error("User ID is required");
+    //   error.statusCode = 400;
+    //   throw error;
+    // }
 
     // creates conversation
     const conversation = await Conversation.create({
@@ -88,6 +93,13 @@ export const getConversation = async (req, res, next) => {
       throw error;
     }
 
+    // authorization check: verifies if the conversation belongs to the logged-in user
+    if (req.user._id.toString() !== conversation.user._id.toString()) {
+      const error = new Error('Not authorized to access conversation of another user');
+      error.statusCode = 403;   //forbidden
+      throw error;
+    }
+
     res.status(200).json({
       success: true,
       message: "Conversation found",
@@ -95,6 +107,10 @@ export const getConversation = async (req, res, next) => {
     });
 
   } catch (error) {
+    if(error.name === 'CastError') {
+      error.message = 'Invalid conversation ID format';
+      error.statusCode = 400;
+    }
     next(error);
   }
 };
@@ -120,9 +136,16 @@ export const updateConversation = async (req, res, next) => {
       throw error;
     }
 
+    // authorization check: verifies if the conversation belongs to the logged-in user
+    if(req.user._id.toString() !== conversation.user.toString()) {
+      const error = new Error('Not authorized to update conversation of another user');
+      error.statusCode = 403;
+      throw error;
+    }
+
     // updates title
     if (title) conversation.title = title;
-
+    
     const updatedConversation = await conversation.save();
 
     res.status(200).json({
@@ -147,6 +170,13 @@ export const deleteConversation = async (req, res, next) => {
     if (!conversation) {
       const error = new Error("Conversation not found");
       error.statusCode = 404;
+      throw error;
+    }
+
+    // authorization check: verifies if the conversation belongs to the logged-in user
+    if(req.user._id.toString() !== conversation.user.toString()) {
+      const error = new Error('Not authorized to delete conversation of another user');
+      error.statusCode = 403;
       throw error;
     }
 
