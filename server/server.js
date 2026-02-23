@@ -1,5 +1,8 @@
-import express from 'express';
 import dotenv from 'dotenv';
+// loads environment variables first, before anything that uses process.env
+dotenv.config();
+
+import express from 'express';
 import connectDB from './config/db.js';
 import errorHandler from './middleware/errorHandler.js';
 
@@ -7,9 +10,6 @@ import errorHandler from './middleware/errorHandler.js';
 import userRoutes from './routes/userRoutes.js'
 import conversationRoutes from './routes/conversationRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
-
-// loads environment variables first, before anything that uses process.env
-dotenv.config();
 
 // connects to MongoDB
 connectDB();
