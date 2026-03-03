@@ -1,5 +1,3 @@
-// gets email and password from a form
-
 import { useState, type SubmitEvent } from "react";
 
 const LoginPage = () => {
@@ -25,6 +23,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-light-blue-600 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">🤖</div>
@@ -110,7 +109,7 @@ const LoginPage = () => {
             Dont have an account?
             <a 
               href="/register"
-              className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+              className="text-blue-600 hover:text-blue-700 font-semibold hover:underline ml-2"
             >
               Sign Up
             </a>
