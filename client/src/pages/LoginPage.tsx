@@ -1,4 +1,5 @@
 import { useState, type SubmitEvent } from "react";
+import { Link } from "react-router-dom";
 
 const LoginPage = () => {
   // state
@@ -107,12 +108,12 @@ const LoginPage = () => {
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             Dont have an account?
-            <a 
-              href="/register"
+            <Link 
+              to="/register"
               className="text-blue-600 hover:text-blue-700 font-semibold hover:underline ml-2"
             >
               Sign Up
-            </a>
+            </Link>
           </p>
         </div>
 
