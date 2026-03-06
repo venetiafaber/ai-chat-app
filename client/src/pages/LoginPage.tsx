@@ -1,28 +1,42 @@
 import { useState, type SubmitEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+// import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const LoginPage = () => {
-  // state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: SubmitEvent) => {
+  // gets login from context
+  // const { login, isLoading: authLoading } = useAuth();
+
+  // const { login } = useContext(UserContext);
+  const { login } = useAuth();
+  
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault(); // prevents page refresh (data remains, js handles the data)
     setIsLoading(true);
 
-    // logs for now - logic to be written later
-    console.log("Login attempt:", { email, password });
+    try {
+      // calls login from AuthContext
+      await login(email, password);
+  
+      // success - redirect to home for now, will redirect to chat page later
+      navigate('/');
 
-    // stimulates API call
-    setTimeout(() => {
-      console.log(`Logged in as: ${email}`);
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-light-blue-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
 
         {/* Header */}

@@ -1,8 +1,9 @@
 import { useState, type SubmitEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+//import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const RegisterPage = () => {
-  // state
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -10,8 +11,14 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // gets register from context
+  const { register } = useAuth();
+  //const { register } = useContext(AuthContext);
+
+  const navigate = useNavigate();
+
   // handle form submission
-  const handleSubmit = (e: SubmitEvent) => {
+  const handleSubmit = async (e: SubmitEvent) => {
     e.preventDefault(); 
     setError('');  // clears previous errors
 
@@ -30,18 +37,22 @@ const RegisterPage = () => {
     }
     setIsLoading(true);
 
-    // logs for now
-    console.log(`Registration attempt: ${username}, ${email}, ${password}`);
+    try {
+      // calls register from AuthContext
+      await register(username, email, password);
+  
+      // success redirect to home 
+      navigate('/');
 
-    // simulating API call
-    setTimeout(() => {
-      console.log(`Account created for ${username}`);
+    } catch (err: any) {
+      setError(err.message || 'Registeration failed');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   }
 
   return(
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-light-blue-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
 
         {/* Header */}
@@ -169,7 +180,7 @@ const RegisterPage = () => {
               transform
               "
           >
-            {isLoading ? "Creating account... " : "Sign In"}
+            {isLoading ? "Creating account... " : "Sign Up"}
           </button>
           
         </form>

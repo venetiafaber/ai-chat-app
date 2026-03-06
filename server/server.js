@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
+import cors from 'cors';
 import connectDB from './config/db.js';
 import errorHandler from './middleware/errorHandler.js';
 
@@ -16,6 +17,13 @@ connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+// adds cors
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+}));
 
 // middleware
 app.use(express.json());    // to parson JSON string into JS object
