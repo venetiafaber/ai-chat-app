@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ interface Message {
 const ChatPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const messageEndRef = useRef<HTMLDivElement>(null);
 
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -40,8 +41,13 @@ const ChatPage = () => {
 
   },[]);
 
+  // set up effect to scroll
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth'})
+  },[messages]);
+
   // function that handles user and ai responses
-  const handleSendMessage = async (e: SubmitEvent) => {
+  const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // prevents sending message if no conversation exists
@@ -115,7 +121,7 @@ const ChatPage = () => {
       </div>
 
       {/* messages area  */}
-      <div className="flex-1 overflow-y px-6 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
 
         {/* loading conversation */}
         {!conversationId && (
@@ -151,13 +157,13 @@ const ChatPage = () => {
                   : 'bg-white text-gray-800 border border-gray-200'
                 }`}
               >
-                <div className={`flex items-start space-x-2 ${message.role === 'ai' ? 'flex-row-reverse' : ''}`}>
+                <div className={`flex items-start gap-3 ${message.role === 'user' ? '' : 'flex-row-reverse' }`}>
                   {/* role */}
                   <div className="flex-shrink-0 text-xl">
                     {message.role === 'ai' 
                       ? (
                         <img 
-                          src='https://source.boringavatars.com/beam/120/AI?colors=8B5CF6,7C3AED,6D28D9'
+                          src='https://api.dicebear.com/7.x/bottts-neutral/svg?seed=gemini&backgroundColor=8b5cf6'
                           alt='AI Assistant'
                           className="w-8 h-8 rounded-full"
                         />
@@ -171,8 +177,8 @@ const ChatPage = () => {
                     }
                   </div>
                   {/* content */}
-                  <div className="flex-1">
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm whitespace-pre-wrap m-0 text-left">{message.content}</p>
                   </div>
                 </div>
               </div>              
@@ -183,18 +189,22 @@ const ChatPage = () => {
         {/* loading indicator */}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 px-4 py=3 rounded-lg">
+            <div className="bg-white border border-gray-200 px-4 py-3 rounded-lg">
               <div className="flex items-center space-x-2">
                 <div className="text-xl">🤖</div>
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate bounce" style={{ animationDelay: '0ms'}}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate bounce" style={{ animationDelay: '150ms'}}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate bounce" style={{ animationDelay: '300ms'}}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms'}}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms'}}></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms'}}></div>
                 </div>
               </div>
             </div>
           </div>
         )}
+      
+        {/* autoscroll div element */}
+        <div ref={messageEndRef}></div>
+
       </div>
 
       {/* input area */}
