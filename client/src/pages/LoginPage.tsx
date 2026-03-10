@@ -7,7 +7,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // gets login from context
   // const { login, isLoading: authLoading } = useAuth();
@@ -25,8 +25,8 @@ const LoginPage = () => {
       // calls login from AuthContext
       await login(email, password);
   
-      // success - redirect to home for now, will redirect to chat page later
-      navigate('/');
+      // success - redirect to chat page
+      navigate('/chat');
 
     } catch (err: any) {
       setError(err.message || 'Login failed');
@@ -132,14 +132,14 @@ const LoginPage = () => {
         </div>
 
         {/* debug info (to remove later) */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 font-mono">
             Debug: Email = { email || '(empty)' }
           </p>
           <p className="text-xs text-gray-500 font-mono">
             Debug: Password = { password || '(password)' }
           </p>
-        </div>
+        </div> */}
 
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { User } from "../types";
 import api from "../services/api";
 
@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  isLoading: boolean;
 }
 
 // defines AuthContextProviderProps TYPES
@@ -21,8 +22,34 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // creates a user context provider
 export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
-  
+
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = () => {
+      try {
+        // checks local storage for user
+        const storedUser = localStorage.getItem('user');
+        const storedToken = localStorage.getItem('token');
+  
+        if(storedUser && storedToken) {
+          // sets user
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error: any) {
+        console.error('Error loading user:', error);
+        // why are we removing user and token from local storage
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUser();
+  },[]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -38,6 +65,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         username: data.data.username,
         email: data.data.email,
         avatar: data.data.avatar,
+        role: data.data.role,
         createdAt: data.data.createdAt
       };
     
@@ -68,6 +96,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         username: data.data.username,
         email: data.data.email,
         avatar: data.data.avatar,
+        role: data.data.role,
         createdAt: data.data.createdAt,
       }
 
@@ -91,13 +120,13 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     setUser(null);
   }
 
-
   const contextValue: AuthContextType = {
     user,
     setUser,
     login,
     register,
     logout,
+    isLoading,
   };
 
   return ( 
