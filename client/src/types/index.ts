@@ -51,15 +51,16 @@ export interface ConversationResponse {
 // message types
 export interface Message {
   _id: string;
-  conversation: string | Conversation;
+  conversation?: string | Conversation;
   role: 'user' | 'ai';    // union types
   content: string;
-  metadata: {
+  metadata?: {
     tokensUsed: number;
     responseTime: number;
   };
-  createdAt: string;
+  createdAt?: string;
   updatedAt?: string;
+  userAvatar?: string;
 }
 
 export interface MessageResponse {
