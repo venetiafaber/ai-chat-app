@@ -22,16 +22,17 @@ export const getAIResponse =  async (conversationHistory, userMessage) => {
   });
 
   // formats conversation history for Gemini
-  const formattedHistory = conversationHistory.map(msg => ({
-    role: msg.role === 'ai' ? 'model' : 'user',
-    parts: [{ text: msg.content }]
+  const formattedHistory = conversationHistory
+    .map(msg => ({
+      role: msg.role === 'ai' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
   }));
 
   // start chat with history
   const chat = model.startChat({
     history: formattedHistory,
     generationConfig: {
-      maxOutputTokens: 1000,
+      maxOutputTokens: 2048,
       temperature: 0.7
     }
   });

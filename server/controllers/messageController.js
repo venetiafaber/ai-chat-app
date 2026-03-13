@@ -106,7 +106,7 @@ export const createMessage = async (req, res, next) => {
     const conversationHistory = await Message.find({
       conversation: conversationId
     })
-      .sort({ createdAt: -1 })  // newest first
+      .sort({ createdAt: 1 })  // oldest first
       .limit(10)                
       .select('role content')   // only role and content
 
