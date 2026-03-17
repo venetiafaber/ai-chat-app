@@ -1,17 +1,17 @@
-import { useEffect, useState, useRef } from "react";
-import { useAuth } from "../contexts/AuthContext";
 import api from "../services/api";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import type { Message, Conversation } from "../types";
+import { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import Sidebar from "../components/chat/Sidebar";
+import ChatHeader from "../components/chat/ChatHeader";
+import MessageInput from "../components/chat/MessageInput";
+import MessageList from "../components/chat/MessageList";
+import type { Message as MessageType, Conversation } from "../types";
 
 const ChatPage = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const messageEndRef = useRef<HTMLDivElement>(null);
 
-  const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
+  //const [inputMessage, setInputMessage] = useState('');
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -34,11 +34,6 @@ const ChatPage = () => {
       setIsLoading(false);
     }
   };
-
-  // auto-scroll
-  useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth'})
-  },[messages]);
 
   // creates new conversation
   const createNewConversation = async () => {
@@ -95,30 +90,25 @@ const ChatPage = () => {
   }
 
   // function that handles user and ai responses
-  const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSendMessage = async (messageContent: string) => {
+    //test
+    console.log('Received message content:', messageContent);
+    
     // prevents sending message if no conversation exists
     if(!conversationId) {
       alert("Please use 'New Chat' to start ");
     }
-    
-    // prevents sending empty messages
-    if(!inputMessage.trim()) return;
 
     // creates user message object
-    const userMessage: Message = {
+    const userMessage: MessageType = {
       _id: `temp-${Date.now()}`,
       role: 'user',
-      content: inputMessage,
+      content: messageContent,
       userAvatar: user?.avatar
     };
 
     // adds user message to UI immediately
     setMessages(prev => [...prev, userMessage]);
-
-    // clears input
-    setInputMessage('');
 
     // send to backend and gets AI reponse
     setIsLoading(true);
@@ -126,7 +116,7 @@ const ChatPage = () => {
       const response = await api.post('/messages', {
         conversationId,
         role: 'user',
-        content: inputMessage
+        content: messageContent
       });
 
       const { aiMessage, conversation } = response.data.data;
@@ -138,7 +128,6 @@ const ChatPage = () => {
         content: aiMessage.content,
         createdAt: aiMessage.createdAt
       }]);
-
 
       // updates conversation in sidebar
       if(conversation) {
@@ -166,7 +155,6 @@ const ChatPage = () => {
       alert('Failed to send message');
 
       setMessages(prev => prev.filter(msg => msg._id !== userMessage._id));
-      setInputMessage(userMessage.content);
 
     } finally {
       setIsLoading(false);
@@ -189,166 +177,22 @@ const ChatPage = () => {
       <div className="flex-1 flex flex-col">
 
         {/* header */}
-        <div className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
-          
-          <button
-            onClick={ () => navigate('/')}
-            className="text-blue-400 hover:text-blue-300 font-medium transition"
-          >
-            <svg 
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10 191-7-7m0 017-7m-7 7h18"
-              />
-            </svg>
-            <span>Home</span>
-          </button>
-          
-          <div className="text-center">
-            <h1 className="text-xl font-semibold text-white">AI Chat Assistant</h1>
-            <p className="text-sm text-gray-300">Powered by Google Gemini</p>
-          </div>
-
-          {/* user avatar */}
-          <div className="flex items-center space-x-3">
-            <img 
-              src={user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} 
-              alt={user?.username || 'User'}
-              className="w-8 h-8 rounded-full ring-2 ring-gray-600"
-            />
-            <span className="text-sm text-gray-300 font-medium">{user?.username}</span>
-          </div>
-        </div>
+        <ChatHeader />
 
         {/* messages area  */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-
-          {/* welcome state: no conversations yet */}
-          {!conversationId && (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center text-gray-400">
-                <p className="text-lg font-medium text-gray-800">Welcome to AI Chat!</p>
-                <p className="text-sm mt-2">Click 'New Chat' to start a conversation</p>
-                <p className="text-xs mt-1">or select an existing conversation from the side bar</p>
-              </div>
-            </div>
-          )}
-
-          {/* empty state: conversation exists but no messages */}
-          {conversationId && messages.length === 0 && (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center text-gray-400">
-                {/* <div className="text-6xl mb-4">💬</div> */}
-                <p className="text-lg">No messages yet</p>
-                <p className="text-sm">Start a conversation with your AI assistant</p>
-              </div>
-            </div>
-          )}
-
-          {/* messages list */}
-          {messages.map((message) => {
-            return(
-              <div 
-                key={message._id}
-                className={`flex ${message.role === 'user' ? 'justify-start' : 'justify-end'} `}
-              >
-                <div className={`max-w-2xl px-4 py-3 rounded-lg 
-                  ${message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-800 border border-gray-200'
-                  }`}
-                >
-                  <div className={`flex items-start gap-3 ${message.role === 'user' ? '' : 'flex-row-reverse' }`}>
-                    {/* role */}
-                    <div className="flex-shrink-0 text-xl">
-                      {message.role === 'ai' 
-                        ? (
-                          <img 
-                            src='https://api.dicebear.com/7.x/bottts-neutral/svg?seed=gemini&backgroundColor=8b5cf6'
-                            alt='AI Assistant'
-                            className="w-8 h-8 rounded-full"
-                          />
-                        ) : (
-                          <img 
-                            src={message.userAvatar || user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} 
-                            alt='User Avatar' 
-                            className="w-8 h-8 rounded-full" 
-                          />
-                        )
-                      }
-                    </div>
-                    {/* content */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm whitespace-pre-wrap m-0 text-left">{message.content}</p>
-                    </div>
-                  </div>
-                </div>              
-              </div>
-            );
-          })}
-
-          {/* loading indicator */}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-white border border-gray-200 px-4 py-3 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0">
-                    <img 
-                      src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=gemini&backgroundColor=8b5cf6" 
-                      alt="AI thinking" 
-                      className="w-8 h-8 rounded-full"
-                    />
-                  </div>
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms'}}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms'}}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms'}}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        
-          {/* autoscroll div element */}
-          <div ref={messageEndRef}></div>
-
-        </div>
+        <MessageList 
+          conversationId={conversationId}
+          messages={messages}
+          isLoading={isLoading}
+          userAvatar={user?.avatar}
+        />
 
         {/* input area */}
-        <div className="bg-white border-t border-gray-200 px-6 py-4">
-          <form onSubmit={handleSendMessage} className="flex space-x-4">
-            <input 
-              type="text" 
-              value={inputMessage}
-              onChange={ (e) => setInputMessage(e.target.value) }
-              placeholder={conversationId ? 'Type your message...' : "Click 'New Chat' to start"}
-              disabled={isLoading || !conversationId}
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-800
-                focus: ring-2 focus:ring-blue-500 focus:border-transparent
-                disabled:bg-gray-100 disabled:cursor-not-allowed
-                transition duration-200 outline-none"
-            />
-            {/* <span>{user?.role}</span> */}
-            <button 
-              type="submit"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium
-                hover:bg-blue-700 
-                disabled:bg-gray-300 disabled:cursor-not-allowed
-                transition duration-200
-                flex items-center space-x-2"
-            >
-              <span>Send</span>
-            </button>
-            
-          </form>
-        </div>
+        <MessageInput 
+          onSendMessage={handleSendMessage}
+          conversationId={conversationId}
+          isLoading={isLoading}
+        />
 
       </div>
     </div>
