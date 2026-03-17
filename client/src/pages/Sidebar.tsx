@@ -30,7 +30,7 @@ const Sidebar = ({
   };
 
   return(
-    <div className="w-64 bg-gray-800 text-white flex flex-col h-full rounded-lg">
+    <div className="w-64 bg-gray-800 text-white flex flex-col h-full">
 
       {/* header: new chat button */}
       <div className="p-4 border-b border-gray-700">

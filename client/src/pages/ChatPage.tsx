@@ -189,22 +189,41 @@ const ChatPage = () => {
       <div className="flex-1 flex flex-col">
 
         {/* header */}
-        <div className="bg-white border-t border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
           
           <button
             onClick={ () => navigate('/')}
-            className="text-blue-600 hover:text-blue-800 font-medium transition"
+            className="text-blue-400 hover:text-blue-300 font-medium transition"
           >
-            Home
+            <svg 
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 191-7-7m0 017-7m-7 7h18"
+              />
+            </svg>
+            <span>Home</span>
           </button>
           
           <div className="text-center">
-            <h1 className="text-xl font-semibold text-gray-800">AI Chat Assistant</h1>
-            <p className="text-sm text-gray-500">Powered by Google Gemini</p>
+            <h1 className="text-xl font-semibold text-white">AI Chat Assistant</h1>
+            <p className="text-sm text-gray-300">Powered by Google Gemini</p>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">{user?.username}</span>
+          {/* user avatar */}
+          <div className="flex items-center space-x-3">
+            <img 
+              src={user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'} 
+              alt={user?.username || 'User'}
+              className="w-8 h-8 rounded-full ring-2 ring-gray-600"
+            />
+            <span className="text-sm text-gray-300 font-medium">{user?.username}</span>
           </div>
         </div>
 
